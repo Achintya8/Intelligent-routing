@@ -63,7 +63,17 @@ class RLRouting(RoutingAlgorithm):
             if not neighbors:
                 break
                 
-            next_hop = self.agent.choose_action(current, neighbors)
+            # Pass visited nodes to exclude loops
+            # Note: We must check if the agent supports 'avoid_nodes' (QLearningAgent might not yet)
+            # But we should update QLearningAgent too if needed, or check signature.
+            # For now, let's assume advanced agents support it. QLearningAgent checks args? 
+            # Actually, Python accepts **kwargs or we updated QLearningAgent signature?
+            # We updated advanced_agents.py. We need to check QLearningAgent in rl_agent.py.
+            # Let's inspect signature first via try/except or just pass specific kwargs for robustnes
+            if "avoid_nodes" in self.agent.choose_action.__code__.co_varnames:
+                 next_hop = self.agent.choose_action(current, neighbors, target, avoid_nodes=visited)
+            else:
+                 next_hop = self.agent.choose_action(current, neighbors, target)
             
             if next_hop is None:
                 break

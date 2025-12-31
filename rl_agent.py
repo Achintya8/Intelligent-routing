@@ -32,26 +32,30 @@ class QLearningAgent:
         """State = current node, Action = next hop neighbor"""
         return self.q_table[state].get(action, 0.0)
 
-    def choose_action(self, current_node, neighbors):
+    def choose_action(self, current_node, neighbors, target_node=None, avoid_nodes=None):
         """
         Epsilon-greedy selection of next hop.
         """
         if not neighbors:
             return None
             
+        valid_neighbors = [n for n in neighbors if not avoid_nodes or n not in avoid_nodes]
+        if not valid_neighbors:
+             return None
+            
         if random.random() < self.epsilon:
             # Explore
-            return random.choice(neighbors)
+            return random.choice(valid_neighbors)
         else:
             # Exploit: Choose neighbor with max Q-value
-            q_values = [self.get_q_value(current_node, n) for n in neighbors]
+            q_values = [self.get_q_value(current_node, n) for n in valid_neighbors]
             max_q = max(q_values)
             
             # Tie-breaking
-            best_actions = [n for n, q in zip(neighbors, q_values) if q == max_q]
+            best_actions = [n for n, q in zip(valid_neighbors, q_values) if q == max_q]
             return random.choice(best_actions)
 
-    def learn(self, state, action, reward, next_state, next_neighbors):
+    def learn(self, state, action, reward, next_state, next_neighbors, target_node=None):
         """
         Q-Learning Update Rule:
         Q(s,a) <- Q(s,a) + alpha * [reward + gamma * max(Q(s', a')) - Q(s,a)]
